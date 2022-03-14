@@ -28,3 +28,16 @@ jobs:
       - name: Print log
         run: |
           jenkins-bridge-client -printlog -token "${{ secrets.BRIDGETOKEN }}" -runid "${{ steps.generate-runid.outputs.RUN_ID }}"
+          
+  backup-to-gitee:
+    runs-on: ubuntu-latest
+    steps:
+      - name: create-repo
+        run: |
+          curl -X POST --header 'Content-Type: application/json;charset=UTF-8' 'https://gitee.com/api/v5/enterprises/linuxdeepin/repos' -d '{"private": 1,"access_token":"${{ secrets.GITEE_TOKEN }}","name":"${{ github.event.repository.name }}","has_issues":"true","has_wiki":"true","can_comment":"true"}' || true
+
+      - name: push
+        run: |
+          git clone --bare https://github.com/linuxdeepin/${{ github.event.repository.name }}.git .git
+          git remote set-url origin https://myml:${{ secrets.GITEE_TOKEN }}@gitee.com/linuxdeepin/${{ github.event.repository.name }}.git
+          git push --all origin
